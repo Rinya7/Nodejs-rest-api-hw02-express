@@ -1,11 +1,7 @@
 const mongoose = require("mongoose");
 
-const {
-  MONGO_DB_USER,
-  MONGO_DB_PASWORD,
-  MONGO_DB_HOST,
-  MONGO_DB_DATABASE,
-} = require("../constants/env.js");
+const { MONGO_DB_USER, MONGO_DB_PASWORD, MONGO_DB_HOST, MONGO_DB_DATABASE } =
+  process.env;
 mongoose.set("strictQuery", true);
 
 const setupConnection = async () => {
