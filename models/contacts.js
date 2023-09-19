@@ -1,4 +1,10 @@
-const { getAll, getById, create, update, remove } = require("../service/index");
+const {
+  getAll,
+  getById,
+  create,
+  update,
+  remove,
+} = require("../service/contacts");
 
 const {
   addContactValidationSchema,
@@ -35,6 +41,7 @@ const removeContact = async (req, res, next) => {
     if (!contact) {
       return res.status(404).json({ message: "Not found" });
     }
+
     return res.status(200).json({ message: "contact deleted" });
   } catch (error) {
     console.error(error.message);
