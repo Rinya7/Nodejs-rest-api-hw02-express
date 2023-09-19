@@ -1,14 +1,17 @@
+const bcrypt = require("bcrypt");
 const UserSchema = require("./schemas/userSchema");
 
-const create = ({ password, email }) => {
-  return UserSchema.create({ password, email });
+const reg = async (data) => {
+  const passwordHash = await bcrypt.hash(data.password, 10);
+  console.log("passwordHash", passwordHash);
+  return await UserSchema.create({ ...data, password: passwordHash });
 };
 
-const login = ({ email, password }) => {
+const log = ({ email, password }) => {
   return UserSchema.findOne({ email, password });
 };
 
 module.exports = {
-  create,
-  login,
+  reg,
+  log,
 };

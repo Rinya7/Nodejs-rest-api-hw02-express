@@ -1,4 +1,4 @@
-const { create, findOne } = require("../service/users");
+const { reg, log } = require("../service/users");
 
 const {
   addUserValidationSchema,
@@ -13,7 +13,7 @@ const register = async (req, res, next) => {
     });
   }
   try {
-    const newUser = await create(req.body);
+    const newUser = await reg(req.body);
 
     if (newUser) {
       return res.status(201).json(newUser);
@@ -31,7 +31,7 @@ const register = async (req, res, next) => {
 const login = async (req, res, next) => {
   const id = req.params.contactId;
   try {
-    const contact = await findOne(id);
+    const contact = await log(id);
     if (!contact) {
       return res.status(404).json({ message: "Not found" });
     }
