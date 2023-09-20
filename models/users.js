@@ -1,8 +1,13 @@
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+require("dotenv").config();
+const { SECRET } = process.env;
+
 const { reg, log } = require("../service/users");
 
 const {
   addUserValidationSchema,
-} = require("../utils/validation/addContactValidationSchema.js");
+} = require("../utils/validation/ValidationSchema.js");
 
 const register = async (req, res, next) => {
   const { error } = addUserValidationSchema.validate(req.body);
@@ -24,20 +29,45 @@ const register = async (req, res, next) => {
         message: "Email in use",
       });
     }
-    console.error(error.message);
+    next(error);
   }
 };
 
 const login = async (req, res, next) => {
-  const id = req.params.contactId;
+  const { error } = addUserValidationSchema.validate(req.body);
+
+  if (error) {
+    return res.status(400).send({
+      message: `Error in required field: ${error.details[0].path[0]}`,
+    });
+  }
   try {
-    const contact = await log(id);
-    if (!contact) {
-      return res.status(404).json({ message: "Not found" });
+    const logUser = await log(req.body);
+
+    if (logUser) {
+      const isValide = await bcrypt.compare(
+        req.body.password,
+        logUser.password
+      );
+      if (!isValide) {
+        return res.status(401).send({ message: "Email or password is wrong" });
+      }
+
+      const payload = {
+        id: logUser.id,
+      };
+      const token = jwt.sign(payload, SECRET, { expiresIn: "23h" });
+      return res.status(200).json({
+        token,
+        user: {
+          email: logUser.email,
+          subscription: logUser.subscription,
+        },
+      });
     }
-    res.status(200).json(contact);
+    return res.status(401).send({ message: "Email or password is wrong" });
   } catch (error) {
-    console.error(error.message);
+    next(error);
   }
 };
 

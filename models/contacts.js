@@ -9,7 +9,7 @@ const {
 const {
   addContactValidationSchema,
   updateStatusFavorite,
-} = require("../utils/validation/addContactValidationSchema.js");
+} = require("../utils/validation/ValidationSchema.js");
 
 const listContacts = async (req, res, next) => {
   try {
@@ -17,7 +17,7 @@ const listContacts = async (req, res, next) => {
 
     return res.status(200).json({ status: "success", code: 200, contactsAll });
   } catch (error) {
-    console.error(error.message);
+    next(error);
   }
 };
 
@@ -30,7 +30,7 @@ const getContactById = async (req, res, next) => {
     }
     res.status(200).json(contact);
   } catch (error) {
-    console.error(error.message);
+    next(error);
   }
 };
 
@@ -44,7 +44,7 @@ const removeContact = async (req, res, next) => {
 
     return res.status(200).json({ message: "contact deleted" });
   } catch (error) {
-    console.error(error.message);
+    next(error);
   }
 };
 
@@ -59,7 +59,7 @@ const addContact = async (req, res, next) => {
     const newContact = await create(req.body);
     return res.status(201).json(newContact);
   } catch (error) {
-    console.error(error.message);
+    next(error);
   }
 };
 
@@ -81,7 +81,7 @@ const updateContact = async (req, res, next) => {
     }
     return res.status(404).json(contact);
   } catch (error) {
-    console.error(error.message);
+    next(error);
   }
 };
 
@@ -103,7 +103,7 @@ const updateStatusContact = async (req, res, next) => {
     }
     return res.status(404).json(contact);
   } catch (error) {
-    console.error(error.message);
+    next(error);
   }
 };
 
