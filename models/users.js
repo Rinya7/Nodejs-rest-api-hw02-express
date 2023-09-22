@@ -2,9 +2,7 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
 const { SECRET } = process.env;
-const HttpError = require("../service/helpers/HttpError");
-
-const { reg, log, getById } = require("../service/users");
+const UserSchema = require("../service/schemas/userSchema");
 
 const {
   addUserValidationSchema,
@@ -19,7 +17,11 @@ const register = async (req, res, next) => {
     });
   }
   try {
-    const newUser = await reg(req.body);
+    const passwordHash = await bcrypt.hash(req.body.password, 10);
+    const newUser = await UserSchema.create({
+      ...req.body,
+      password: passwordHash,
+    });
 
     if (newUser) {
       return res.status(201).json(newUser);
@@ -34,19 +36,6 @@ const register = async (req, res, next) => {
   }
 };
 
-//const current = async (req, res, next) => {
-//  const id = req.params.contactId;
-//  try {
-//    const contact = await getById(id);
-//    if (!contact) {
-//      HttpError(401);
-//    }
-//    res.status(200).json(contact);
-//  } catch (error) {
-//    next(error);
-//  }
-//};
-
 const login = async (req, res, next) => {
   const { error } = addUserValidationSchema.validate(req.body);
 
@@ -56,7 +45,7 @@ const login = async (req, res, next) => {
     });
   }
   try {
-    const logUser = await log(req.body);
+    const logUser = await UserSchema.findOne({ email: req.body.email });
 
     if (logUser) {
       const isValide = await bcrypt.compare(
@@ -71,6 +60,7 @@ const login = async (req, res, next) => {
         id: logUser.id,
       };
       const token = jwt.sign(payload, SECRET, { expiresIn: "23h" });
+      await UserSchema.findByIdAndUpdate(logUser._id, { token });
       return res.status(200).json({
         token,
         user: {
@@ -85,8 +75,21 @@ const login = async (req, res, next) => {
   }
 };
 
+const current = async (req, res, next) => {
+  const { email, subscription } = req.user;
+
+  res.status(200).json({ email, subscription });
+};
+
+const logout = async (req, res, next) => {
+  const { _id } = req.user;
+  await UserSchema.findByIdAndUpdate(_id, { token: "" });
+  res.status(200).json({ message: "Logout succes" });
+};
+
 module.exports = {
   register,
   login,
-  //  current,
+  current,
+  logout,
 };
