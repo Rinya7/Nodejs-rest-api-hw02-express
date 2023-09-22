@@ -2,8 +2,9 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
 const { SECRET } = process.env;
+const HttpError = require("../service/helpers/HttpError");
 
-const { reg, log } = require("../service/users");
+const { reg, log, getById } = require("../service/users");
 
 const {
   addUserValidationSchema,
@@ -32,6 +33,19 @@ const register = async (req, res, next) => {
     next(error);
   }
 };
+
+//const current = async (req, res, next) => {
+//  const id = req.params.contactId;
+//  try {
+//    const contact = await getById(id);
+//    if (!contact) {
+//      HttpError(401);
+//    }
+//    res.status(200).json(contact);
+//  } catch (error) {
+//    next(error);
+//  }
+//};
 
 const login = async (req, res, next) => {
   const { error } = addUserValidationSchema.validate(req.body);
@@ -74,4 +88,5 @@ const login = async (req, res, next) => {
 module.exports = {
   register,
   login,
+  //  current,
 };

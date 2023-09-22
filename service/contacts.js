@@ -1,15 +1,15 @@
 const ContactSchema = require("./schemas/contactSchema");
 
-const getAll = async () => {
-  return await ContactSchema.find();
-};
+//const getAll = async (data) => {
+//  return await ContactSchema.find(data);
+//};
 
 const getById = async (id) => {
   return await ContactSchema.findById(id);
 };
 
-const create = async ({ name, email, phone, favorite }) => {
-  return await ContactSchema.create({ name, email, phone, favorite });
+const create = async (data) => {
+  return await ContactSchema.create(data);
 };
 
 const update = async (id, fields) => {
@@ -23,10 +23,9 @@ const remove = async (id) => {
 };
 
 module.exports = {
-  getAll,
+  //  getAll,
   getById,
   create,
   update,
   remove,
-  //  updateStatus,
 };

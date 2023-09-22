@@ -9,17 +9,18 @@ const {
   updateContact,
   updateStatusContact,
 } = require("../../models/contacts");
+const authenticate = require("../../utils/authenticate");
 
-router.get("/", listContacts);
+router.get("/", authenticate, listContacts);
 
-router.get("/:contactId", getContactById);
+router.get("/:contactId", authenticate, getContactById);
 
-router.post("/", addContact);
+router.post("/", authenticate, addContact);
 
-router.delete("/:contactId", removeContact);
+router.delete("/:contactId", authenticate, removeContact);
 
-router.put("/:contactId", updateContact);
+router.put("/:contactId", authenticate, updateContact);
 
-router.patch("/:contactId/favorite", updateStatusContact);
+router.patch("/:contactId/favorite", authenticate, updateStatusContact);
 
 module.exports = router;

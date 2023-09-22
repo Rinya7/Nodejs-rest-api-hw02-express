@@ -6,6 +6,10 @@ const reg = async (data) => {
   return await UserSchema.create({ ...data, password: passwordHash });
 };
 
+const getById = async (id) => {
+  return await UserSchema.findById(id);
+};
+
 const log = async (data) => {
   return await UserSchema.findOne({ email: data.email });
 };
@@ -13,4 +17,5 @@ const log = async (data) => {
 module.exports = {
   reg,
   log,
+  getById,
 };

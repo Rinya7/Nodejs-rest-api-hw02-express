@@ -19,7 +19,9 @@ const contactSchema = new Schema(
     },
     owner: {
       type: Schema.Types.ObjectId,
+      //  "users" - це колекця в який лежать юзери
       ref: "users",
+      required: true,
     },
   },
   { versionKey: false }
