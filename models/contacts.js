@@ -29,7 +29,7 @@ const getContactById = async (req, res, next) => {
   try {
     const contact = await ContactSchema.findById(id);
     if (!contact) {
-      HttpError(404);
+      return next(HttpError(404));
     }
     res.status(200).json(contact);
   } catch (error) {
@@ -42,7 +42,7 @@ const removeContact = async (req, res, next) => {
   try {
     const contact = await ContactSchema.findByIdAndRemove({ _id: id });
     if (!contact) {
-      HttpError(404);
+      return next(HttpError(404));
     }
 
     return res.status(200).json({ message: "contact deleted" });
@@ -60,7 +60,10 @@ const addContact = async (req, res, next) => {
   }
   try {
     const { _id: owner } = req.user;
-    const newContact = await ContactSchema.create({ ...req.body, owner });
+    const newContact = await ContactSchema.create({
+      ...req.body,
+      owner,
+    });
     return res.status(201).json(newContact);
   } catch (error) {
     next(error);
@@ -84,7 +87,7 @@ const updateContact = async (req, res, next) => {
       }
     );
     if (!contact) {
-      HttpError(404);
+      return next(HttpError(404));
     }
     if (!req.body) {
       return res.status(400).json({ message: "missing fields" });
@@ -109,7 +112,7 @@ const updateStatusContact = async (req, res, next) => {
       return res.status(404).json({ message: "Contact not found" });
     }
     if (!req.body) {
-      HttpError(400);
+      return next(HttpError(400));
     }
     return res.status(200).json(contact);
   } catch (error) {
