@@ -109,6 +109,16 @@ const reSendVerifyEmail = async (req, res, next) => {
 
   const user = await UserSchema.findOne({ email });
 
+  if (!user) {
+    return next(httpError(401));
+  }
+
+  if (user.verify) {
+    return res.status(400).send({
+      message: "Email already verify",
+    });
+  }
+
   const { verificationToken } = user;
 
   const verifyEmail = {
