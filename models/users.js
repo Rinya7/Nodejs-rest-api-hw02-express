@@ -5,15 +5,20 @@ const path = require("path");
 const gravatar = require("gravatar");
 const Jimp = require("jimp");
 require("dotenv").config();
-const { SECRET } = process.env;
+const { SECRET, BASE_URL } = process.env;
+
 const UserSchema = require("../service/schemas/userSchema");
 
 const {
   addUserValidationSchema,
+  emailSchema,
 } = require("../utils/validation/ValidationSchema.js");
-const HttpError = require("../service/helpers/HttpError");
+const httpError = require("../service/helpers/httpError");
+const sendEmail = require("../service/helpers/sendEmail");
+const { v4: uuidv4 } = require("uuid");
 
 const register = async (req, res, next) => {
+  const { email, password } = req.body;
   const { error } = addUserValidationSchema.validate(req.body);
 
   if (error) {
@@ -25,9 +30,8 @@ const register = async (req, res, next) => {
     let avatarUrl;
     // перенос файла в папку аватарс:
     if (req.file) {
-      console.log("req.file", req.file);
       const { path: tempUpload, filename } = req.file;
-      //  console.log("req.file", req.file);
+
       const avatarsDir = path.join(process.cwd(), "public", "avatars");
       const resultUpload = path.join(avatarsDir, filename);
       await fs.rename(tempUpload, resultUpload);
@@ -37,7 +41,7 @@ const register = async (req, res, next) => {
 
       avatarUrl = resultUpload;
     } else {
-      const { email } = req.body;
+      //  const { email } = req.body;
       const options = {
         s: "200",
         r: "pg",
@@ -46,24 +50,85 @@ const register = async (req, res, next) => {
       avatarUrl = gravatar.url(email, options);
     }
     // end
-    const passwordHash = await bcrypt.hash(req.body.password, 10);
+
+    const passwordHash = await bcrypt.hash(password, 10);
+    const verificationToken = uuidv4();
+
     const newUser = await UserSchema.create({
       ...req.body,
       password: passwordHash,
       avatarUrl,
+      verificationToken,
     });
+
+    const verifyEmail = {
+      to: email,
+      subject: "Verify email",
+      html: `<a href="${BASE_URL}/api/users/auth/verify/${verificationToken}">Click verify email</a>`,
+    };
+
+    await sendEmail(verifyEmail);
 
     if (newUser) {
       return res.status(201).json(newUser);
     }
   } catch (error) {
-    if (error.keyValue.email === req.body.email) {
+    if (error.keyValue.email === email) {
       res.status(409).send({
         message: "Email in use",
       });
     }
     next(error);
   }
+};
+
+const verifyEmail = async (req, res, next) => {
+  const { verificationToken } = req.params;
+
+  const user = await UserSchema.findOne({ verificationToken });
+  if (!user) {
+    return next(httpError(404));
+  }
+  await UserSchema.findByIdAndUpdate(user._id, {
+    verify: true,
+    verificationToken: "",
+  });
+  return res.status(200).send({ message: "Verification successful" });
+};
+
+const reSendVerifyEmail = async (req, res, next) => {
+  const { email } = req.body;
+
+  const { error } = emailSchema.validate(req.body);
+
+  if (error) {
+    return res.status(400).send({
+      message: "missing required field email",
+    });
+  }
+
+  const user = await UserSchema.findOne({ email });
+
+  if (!user) {
+    return next(httpError(401));
+  }
+
+  if (user.verify) {
+    return res.status(400).send({
+      message: "Email already verify",
+    });
+  }
+
+  const { verificationToken } = user;
+
+  const verifyEmail = {
+    to: email,
+    subject: "Verify email",
+    html: `<a href="${BASE_URL}/api/users/auth/verify/${verificationToken}">Click verify email</a>`,
+  };
+
+  await sendEmail(verifyEmail);
+  return res.status(200).send({ message: "Verification email sent" });
 };
 
 const login = async (req, res, next) => {
@@ -126,7 +191,7 @@ const updateAvatar = async (req, res, next) => {
 
   try {
     if (!req.file) {
-      return next(HttpError(404));
+      return next(httpError(404));
     }
     const { path: tempUpload, filename } = req.file;
     const avatarsDir = path.join(process.cwd(), "public", "avatars");
@@ -155,4 +220,6 @@ module.exports = {
   current,
   logout,
   updateAvatar,
+  verifyEmail,
+  reSendVerifyEmail,
 };
