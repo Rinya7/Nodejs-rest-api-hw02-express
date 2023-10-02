@@ -7,6 +7,8 @@ const {
   current,
   logout,
   updateAvatar,
+  verifyEmail,
+  reSendVerifyEmail,
 } = require("../../models/users");
 const authenticate = require("../../utils/authenticate");
 const upload = require("../../utils/upload");
@@ -15,6 +17,9 @@ const upload = require("../../utils/upload");
 //при загрузке группы файлов в разных полях: upload.filds([{name: "avatar", maxCount: 6}, {name: "logo", maxCount: 2}]) .
 
 router.post("/register", upload.single("avatar"), register);
+router.get("/auth/verify/:verificationToken", verifyEmail);
+router.post("/auth/verify", reSendVerifyEmail);
+
 router.post("/login", login);
 router.get("/current", authenticate, current);
 router.post("/logout", authenticate, logout);

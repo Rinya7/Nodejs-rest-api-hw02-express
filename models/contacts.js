@@ -1,5 +1,5 @@
 const ContactSchema = require("../service/schemas/contactSchema");
-const HttpError = require("../service/helpers/HttpError");
+const httpError = require("../service/helpers/httpError");
 
 const {
   addContactValidationSchema,
@@ -29,7 +29,7 @@ const getContactById = async (req, res, next) => {
   try {
     const contact = await ContactSchema.findById(id);
     if (!contact) {
-      return next(HttpError(404));
+      return next(httpError(404));
     }
     res.status(200).json(contact);
   } catch (error) {
@@ -42,7 +42,7 @@ const removeContact = async (req, res, next) => {
   try {
     const contact = await ContactSchema.findByIdAndRemove({ _id: id });
     if (!contact) {
-      return next(HttpError(404));
+      return next(httpError(404));
     }
 
     return res.status(200).json({ message: "contact deleted" });
@@ -87,7 +87,7 @@ const updateContact = async (req, res, next) => {
       }
     );
     if (!contact) {
-      return next(HttpError(404));
+      return next(httpError(404));
     }
     if (!req.body) {
       return res.status(400).json({ message: "missing fields" });
@@ -112,7 +112,7 @@ const updateStatusContact = async (req, res, next) => {
       return res.status(404).json({ message: "Contact not found" });
     }
     if (!req.body) {
-      return next(HttpError(400));
+      return next(httpError(400));
     }
     return res.status(200).json(contact);
   } catch (error) {
