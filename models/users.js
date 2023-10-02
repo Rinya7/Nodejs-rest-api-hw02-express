@@ -11,6 +11,7 @@ const UserSchema = require("../service/schemas/userSchema");
 
 const {
   addUserValidationSchema,
+  emailSchema,
 } = require("../utils/validation/ValidationSchema.js");
 const httpError = require("../service/helpers/httpError");
 const sendEmail = require("../service/helpers/sendEmail");
@@ -98,7 +99,9 @@ const verifyEmail = async (req, res, next) => {
 const reSendVerifyEmail = async (req, res, next) => {
   const { email } = req.body;
 
-  if (!email) {
+  const { error } = emailSchema.validate(req.body);
+
+  if (error) {
     return res.status(400).send({
       message: "missing required field email",
     });
